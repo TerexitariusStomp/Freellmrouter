@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreeRouter — Smart Free LLM Router</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== DESIGN TOKENS ===== */
+:root, [data-theme="light"] {
+  --color-bg: #f7f6f2;
+  --color-surface: #f9f8f5;
+  --color-surface-2: #fbfbf9;
+  --color-surface-offset: #f3f0ec;
+  --color-divider: #dcd9d5;
+  --color-border: #d4d1ca;
+  --color-text: #28251d;
+  --color-text-muted: #7a7974;
+  --color-text-faint: #bab9b4;
+  --color-text-inverse: #f9f8f4;
+  --color-primary: #01696f;
+  --color-primary-hover: #0c4e54;
+  --color-primary-highlight: #cedcd8;
+  --color-success: #437a22;
+  --color-success-highlight: #d4dfcc;
+  --color-warning: #964219;
+  --color-warning-highlight: #ddcfc6;
+  --color-error: #a12c7b;
+  --color-error-highlight: #e0ced7;
+  --color-gold: #d19900;
+  --color-gold-highlight: #e9e0c6;
+  --color-orange: #da7101;
+  --color-blue: #006494;
+  --color-blue-highlight: #c6d8e4;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
+  --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
+  --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12);
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+  --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem;
+  --space-12: 3rem; --space-16: 4rem;
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+  --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+  --font-body: 'Geist', 'Inter', sans-serif;
+  --font-mono: 'Geist Mono', 'Fira Code', monospace;
+  --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-theme="dark"] {
+  --color-bg: #0f0e0c;
+  --color-surface: #141311;
+  --color-surface-2: #1a1917;
+  --color-surface-offset: #1e1d1b;
+  --color-divider: #262523;
+  --color-border: #2e2d2b;
+  --color-text: #cdccca;
+  --color-text-muted: #797876;
+  --color-text-faint: #4a4947;
+  --color-text-inverse: #0f0e0c;
+  --color-primary: #4f98a3;
+  --color-primary-hover: #227f8b;
+  --color-primary-highlight: #1e3234;
+  --color-success: #6daa45;
+  --color-success-highlight: #1e3018;
+  --color-warning: #bb653b;
+  --color-warning-highlight: #3a2415;
+  --color-error: #d163a7;
+  --color-error-highlight: #3a1a2e;
+  --color-gold: #e8af34;
+  --color-gold-highlight: #352a0f;
+  --color-orange: #fdab43;
+  --color-blue: #5591c7;
+  --color-blue-highlight: #152131;
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.25);
+  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.5);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme]) {
+  --color-bg: #0f0e0c; --color-surface: #141311; --color-surface-2: #1a1917;
+  --color-surface-offset: #1e1d1b; --color-divider: #262523; --color-border: #2e2d2b;
+  --color-text: #cdccca; --color-text-muted: #797876; --color-text-faint: #4a4947;
+  --color-text-inverse: #0f0e0c; --color-primary: #4f98a3; --color-primary-hover: #227f8b;
+  --color-primary-highlight: #1e3234; --color-success: #6daa45; --color-success-highlight: #1e3018;
+  --color-warning: #bb653b; --color-warning-highlight: #3a2415; --color-error: #d163a7;
+  --color-error-highlight: #3a1a2e; --color-gold: #e8af34; --color-gold-highlight: #352a0f;
+  --color-orange: #fdab43; --color-blue: #5591c7; --color-blue-highlight: #152131;
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.25); --shadow-md: 0 4px 12px oklch(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.5);
+}}
+
+/* ===== BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+body { min-height: 100dvh; font-family: var(--font-body); font-size: var(--text-base); color: var(--color-text); background: var(--color-bg); line-height: 1.6; }
+img, svg { display: block; }
+button, input, select, textarea { font: inherit; color: inherit; }
+h1,h2,h3,h4 { text-wrap: balance; line-height: 1.15; }
+button { cursor: pointer; background: none; border: none; }
+a, button, [role="button"], input, select, textarea { transition: color var(--transition), background var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition); }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-sm); }
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* ===== LAYOUT ===== */
+.app { display: flex; flex-direction: column; min-height: 100dvh; }
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-3) var(--space-6);
+  background: color-mix(in oklch, var(--color-bg) 85%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+}
+.logo { display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: inherit; }
+.logo-icon { width: 32px; height: 32px; }
+.logo-name { font-size: var(--text-sm); font-weight: 600; letter-spacing: -0.02em; }
+.logo-badge { font-size: var(--text-xs); padding: 2px var(--space-2); background: var(--color-primary-highlight); color: var(--color-primary); border-radius: var(--radius-full); font-family: var(--font-mono); }
+.topbar-actions { display: flex; align-items: center; gap: var(--space-3); }
+.btn-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); color: var(--color-text-muted); }
+.btn-icon:hover { background: var(--color-surface-2); color: var(--color-text); }
+.main { display: flex; flex: 1; }
+.sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--color-border); padding: var(--space-6) var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
+.content { flex: 1; padding: var(--space-8) var(--space-10); overflow: auto; max-width: 1100px; }
+
+/* ===== NAV ===== */
+.nav-label { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-faint); padding: var(--space-2) var(--space-3); margin-top: var(--space-4); }
+.nav-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: var(--text-sm); color: var(--color-text-muted); cursor: pointer; text-decoration: none; }
+.nav-item:hover { background: var(--color-surface-2); color: var(--color-text); }
+.nav-item.active { background: var(--color-primary-highlight); color: var(--color-primary); font-weight: 500; }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* ===== SECTION TABS ===== */
+.section { display: none; animation: fadeIn 0.2s ease; }
+.section.active { display: block; }
+
+/* ===== PAGE HEADER ===== */
+.page-header { margin-bottom: var(--space-8); }
+.page-title { font-size: var(--text-xl); font-weight: 700; letter-spacing: -0.03em; color: var(--color-text); }
+.page-sub { font-size: var(--text-sm); color: var(--color-text-muted); margin-top: var(--space-2); }
+
+/* ===== KPI STRIP ===== */
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-8); }
+.kpi-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); box-shadow: var(--shadow-sm); }
+.kpi-label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--space-2); }
+.kpi-value { font-size: var(--text-lg); font-weight: 700; font-family: var(--font-mono); letter-spacing: -0.03em; }
+.kpi-sub { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
+.kpi-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: var(--space-1); }
+
+/* ===== ROUTER PANEL ===== */
+.router-grid { display: grid; grid-template-columns: 1fr 340px; gap: var(--space-6); }
+.card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); }
+.card-header { padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-divider); display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: var(--text-sm); font-weight: 600; }
+.card-body { padding: var(--space-5) var(--space-6); }
+.form-group { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-5); }
+label { font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); }
+select, textarea, input[type="text"], input[type="number"] {
+  width: 100%; padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+select:focus, textarea:focus, input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 15%, transparent); }
+textarea { resize: vertical; min-height: 100px; font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.6; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); padding: var(--space-3) var(--space-5); border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 500; text-decoration: none; }
+.btn-primary { background: var(--color-primary); color: var(--color-text-inverse); }
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-ghost { border: 1px solid var(--color-border); color: var(--color-text-muted); }
+.btn-ghost:hover { background: var(--color-surface-2); color: var(--color-text); }
+.btn-full { width: 100%; }
+.btn-sm { padding: var(--space-2) var(--space-3); font-size: var(--text-xs); }
+
+/* ===== ROUTE RESULT ===== */
+.route-result { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+.route-winner { padding: var(--space-5) var(--space-6); }
+.route-winner-label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: var(--space-3); }
+.winner-row { display: flex; align-items: center; gap: var(--space-3); }
+.winner-provider { font-size: var(--text-lg); font-weight: 700; }
+.winner-model { font-size: var(--text-xs); font-family: var(--font-mono); color: var(--color-text-muted); margin-top: 2px; }
+.score-bar-row { padding: 0 var(--space-6) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
+.score-row { display: flex; align-items: center; gap: var(--space-3); }
+.score-label { font-size: var(--text-xs); color: var(--color-text-muted); width: 80px; flex-shrink: 0; }
+.score-track { flex: 1; height: 6px; background: var(--color-divider); border-radius: var(--radius-full); overflow: hidden; }
+.score-fill { height: 100%; border-radius: var(--radius-full); transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.score-val { font-size: var(--text-xs); font-family: var(--font-mono); color: var(--color-text-muted); width: 36px; text-align: right; }
+
+/* ===== PROVIDER TABLE ===== */
+.provider-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.provider-table th { text-align: left; font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-faint); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-divider); }
+.provider-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-divider); vertical-align: middle; }
+.provider-table tr:last-child td { border-bottom: none; }
+.provider-table tr:hover td { background: var(--color-surface-offset); }
+.provider-name { font-weight: 500; }
+.provider-tier { font-size: var(--text-xs); color: var(--color-text-muted); }
+.tag { display: inline-flex; align-items: center; padding: 2px var(--space-2); border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 500; }
+.tag-free { background: var(--color-success-highlight); color: var(--color-success); }
+.tag-trial { background: var(--color-gold-highlight); color: var(--color-gold); }
+.tag-warn { background: var(--color-warning-highlight); color: var(--color-warning); }
+.credit-bar-wrap { display: flex; align-items: center; gap: var(--space-2); }
+.credit-bar { flex: 1; height: 5px; background: var(--color-divider); border-radius: var(--radius-full); overflow: hidden; min-width: 60px; }
+.credit-fill { height: 100%; border-radius: var(--radius-full); }
+.credit-label { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-muted); white-space: nowrap; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.status-online { background: var(--color-success); box-shadow: 0 0 6px var(--color-success); }
+.status-limited { background: var(--color-gold); }
+.status-offline { background: var(--color-error); }
+
+/* ===== CAPACITY PANEL ===== */
+.capacity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); }
+.cap-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); }
+.cap-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-3); }
+.cap-name { font-size: var(--text-sm); font-weight: 600; }
+.cap-limits { display: flex; flex-direction: column; gap: var(--space-2); }
+.cap-limit-row { display: flex; justify-content: space-between; font-size: var(--text-xs); }
+.cap-key { color: var(--color-text-muted); }
+.cap-val { font-family: var(--font-mono); color: var(--color-text); }
+
+/* ===== RESPONSE BOX ===== */
+.response-area { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5) var(--space-6); min-height: 80px; font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.8; color: var(--color-text); white-space: pre-wrap; word-break: break-word; }
+.skeleton { background: linear-gradient(90deg, var(--color-surface-offset) 25%, var(--color-surface-2) 50%, var(--color-surface-offset) 75%); background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; border-radius: var(--radius-sm); }
+.skeleton-line { height: 0.9em; margin-bottom: var(--space-2); }
+.copy-btn { margin-top: var(--space-3); }
+.meta-chips { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-3); }
+.meta-chip { font-size: var(--text-xs); font-family: var(--font-mono); background: var(--color-surface-offset); border: 1px solid var(--color-border); border-radius: var(--radius-full); padding: 2px var(--space-3); color: var(--color-text-muted); }
+.meta-chip strong { color: var(--color-text); }
+
+/* ===== SETTINGS ===== */
+.settings-grid { display: grid; gap: var(--space-6); }
+.settings-section { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); }
+.settings-header { padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-divider); }
+.settings-title { font-size: var(--text-sm); font-weight: 600; }
+.settings-desc { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
+.settings-body { padding: var(--space-5) var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
+.setting-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-8); }
+.setting-label { font-size: var(--text-sm); font-weight: 500; }
+.setting-desc { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 2px; }
+.toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: var(--color-divider); border-radius: var(--radius-full); transition: background var(--transition); cursor: pointer; }
+.toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform var(--transition); }
+.toggle input:checked + .toggle-slider { background: var(--color-primary); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+.priority-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.priority-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: grab; }
+.priority-item svg { color: var(--color-text-faint); flex-shrink: 0; }
+.priority-rank { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-faint); width: 16px; }
+.priority-name { font-size: var(--text-sm); font-weight: 500; flex: 1; }
+.priority-weight { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-muted); background: var(--color-surface-offset); padding: 2px var(--space-2); border-radius: var(--radius-sm); }
+.key-input-row { display: flex; gap: var(--space-2); }
+.key-input-row input { flex: 1; }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: var(--radius-full); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .content { padding: var(--space-6) var(--space-4); }
+  .kpi-row { grid-template-columns: repeat(2,1fr); }
+  .router-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .topbar { padding: var(--space-3) var(--space-4); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <a class="logo" href="#" onclick="return false">
+    <svg class="logo-icon" viewBox="0 0 32 32" fill="none" aria-label="FreeRouter logo">
+      <rect width="32" height="32" rx="8" fill="currentColor" opacity="0.08"/>
+      <path d="M7 16 L13 10 L13 22 Z" fill="var(--color-primary)"/>
+      <path d="M17 10 L25 16 L17 22" stroke="var(--color-primary)" stroke-width="2" fill="none" stroke-linejoin="round"/>
+      <circle cx="25" cy="10" r="2.5" fill="var(--color-gold)"/>
+      <circle cx="25" cy="22" r="2.5" fill="var(--color-success)"/>
+    </svg>
+    <span class="logo-name">FreeRouter</span>
+    <span class="logo-badge">v0.1</span>
+  </a>
+  <div class="topbar-actions">
+    <button class="btn-icon" id="themeToggle" aria-label="Toggle theme" data-theme-toggle>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <a href="https://github.com/cheahjs/free-llm-api-resources" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      Provider List
+    </a>
+  </div>
+</header>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-label">Router</div>
+    <a class="nav-item active" onclick="showSection('router', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Smart Route
+    </a>
+    <div class="nav-label">Dashboard</div>
+    <a class="nav-item" onclick="showSection('providers', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Providers
+    </a>
+    <a class="nav-item" onclick="showSection('capacity', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Rate Limits
+    </a>
+    <div class="nav-label">Config</div>
+    <a class="nav-item" onclick="showSection('settings', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Settings
+    </a>
+    <a class="nav-item" onclick="showSection('keys', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+      API Keys
+    </a>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- ROUTER SECTION -->
+    <div id="section-router" class="section active">
+      <div class="page-header">
+        <h1 class="page-title">Smart Route</h1>
+        <p class="page-sub">Routes your prompt to the best free provider based on remaining credits + task capability score.</p>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row" id="kpiRow">
+        <div class="kpi-card">
+          <div class="kpi-label">Active Providers</div>
+          <div class="kpi-value" id="kpiActive" style="color:var(--color-success)">—</div>
+          <div class="kpi-sub">free tier available</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Daily Requests</div>
+          <div class="kpi-value" id="kpiReqs" style="color:var(--color-primary)">—</div>
+          <div class="kpi-sub">across all providers</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Requests Used Today</div>
+          <div class="kpi-value" id="kpiUsed" style="color:var(--color-gold)">—</div>
+          <div class="kpi-sub">simulated usage</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Best Available</div>
+          <div class="kpi-value" id="kpiBest" style="color:var(--color-text);font-size:var(--text-sm)">—</div>
+          <div class="kpi-sub">for current task type</div>
+        </div>
+      </div>
+
+      <!-- MAIN GRID -->
+      <div class="router-grid">
+        <!-- Left: Request Builder -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Request Builder</span>
+            <button class="btn btn-ghost btn-sm" onclick="clearForm()">Clear</button>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="taskType">Task Type</label>
+              <select id="taskType" onchange="onTaskChange()">
+                <option value="general">General — Conversation / Q&A</option>
+                <option value="coding">Coding — Code generation / debugging</option>
+                <option value="reasoning">Reasoning — Math / logic / analysis</option>
+                <option value="vision">Vision — Image understanding</option>
+                <option value="long">Long Context — Documents / summarization</option>
+                <option value="fast">Fast / Realtime — Low latency priority</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="strategy">Routing Strategy</label>
+              <select id="strategy">
+                <option value="balanced">Balanced — credits × capability</option>
+                <option value="credits">Max Credits Remaining</option>
+                <option value="capability">Max Capability</option>
+                <option value="speed">Fastest (highest RPM)</option>
+                <option value="fallback">Waterfall Fallback</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="promptBox">Prompt</label>
+              <textarea id="promptBox" placeholder="Enter your prompt here..."></textarea>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="routeRequest()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              Route &amp; Execute
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Route Result -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Routing Decision</span>
+              <span id="routeStatus" class="tag tag-free" style="display:none">Ready</span>
+            </div>
+            <div id="routeWinner" style="padding:var(--space-5) var(--space-6);color:var(--color-text-faint);font-size:var(--text-xs)">
+              Submit a request to see routing decision
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Fallback Chain</span>
+            </div>
+            <div class="card-body">
+              <div id="fallbackChain" style="display:flex;flex-direction:column;gap:var(--space-2);color:var(--color-text-faint);font-size:var(--text-xs)">
+                Routing chain will appear here
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Equivalent cURL</span>
+              <button class="btn btn-ghost btn-sm" onclick="copyCurl()">Copy</button>
+            </div>
+            <div class="card-body" style="padding:var(--space-4)">
+              <pre id="curlBox" style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);white-space:pre-wrap;word-break:break-all;line-height:1.7">Submit a request to see generated cURL</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Response -->
+      <div style="margin-top:var(--space-6)">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Simulated Response</span>
+            <button class="btn btn-ghost btn-sm" id="copyRespBtn" onclick="copyResp()" style="display:none">Copy</button>
+          </div>
+          <div class="card-body">
+            <div id="responseBox" class="response-area" style="color:var(--color-text-faint)">Response will appear here after routing…</div>
+            <div id="metaChips" class="meta-chips"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROVIDERS SECTION -->
+    <div id="section-providers" class="section">
+      <div class="page-header">
+        <h1 class="page-title">Providers</h1>
+        <p class="page-sub">All free-tier and trial-credit LLM API providers. Credits and usage are simulated for demo.</p>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Provider Registry</span>
+          <div style="display:flex;gap:var(--space-2)">
+            <select id="filterTier" onchange="renderProviderTable()" style="width:auto;padding:var(--space-2) var(--space-3);font-size:var(--text-xs)">
+              <option value="all">All tiers</option>
+              <option value="free">Free</option>
+              <option value="trial">Trial Credits</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="provider-table">
+            <thead>
+              <tr>
+                <th>Provider</th>
+                <th>Tier</th>
+                <th>Best For</th>
+                <th>RPM</th>
+                <th>Daily Req</th>
+                <th>Credits / Usage</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="providerTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAPACITY SECTION -->
+    <div id="section-capacity" class="section">
+      <div class="page-header">
+        <h1 class="page-title">Rate Limits</h1>
+        <p class="page-sub">Per-provider daily and per-minute limits from the free tier.</p>
+      </div>
+      <div class="capacity-grid" id="capacityGrid"></div>
+    </div>
+
+    <!-- SETTINGS SECTION -->
+    <div id="section-settings" class="section">
+      <div class="page-header">
+        <h1 class="page-title">Settings</h1>
+        <p class="page-sub">Configure routing behavior, provider priority, and fallback logic.</p>
+      </div>
+      <div class="settings-grid">
+        <div class="settings-section">
+          <div class="settings-header">
+            <div class="settings-title">Routing Preferences</div>
+            <div class="settings-desc">Controls how the router scores and selects providers.</div>
+          </div>
+          <div class="settings-body">
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Auto-fallback on rate limit</div>
+                <div class="setting-desc">Automatically retry the next provider when a 429 is received.</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Credit-aware routing</div>
+                <div class="setting-desc">Deprioritise providers below 15% remaining credits.</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Prefer open-weight models</div>
+                <div class="setting-desc">Boost score for Llama, Mistral, Qwen-class open models.</div>
+              </div>
+              <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Exclude data-training providers</div>
+                <div class="setting-desc">Skip providers that use prompts for model training (e.g. Google AI Studio outside EEA).</div>
+              </div>
+              <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header">
+            <div class="settings-title">Provider Priority</div>
+            <div class="settings-desc">Drag to reorder. Higher = preferred when scores are tied.</div>
+          </div>
+          <div class="settings-body">
+            <div class="priority-list" id="priorityList"></div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-header">
+            <div class="settings-title">Scoring Weights</div>
+            <div class="settings-desc">How much each factor contributes to the final provider score.</div>
+          </div>
+          <div class="settings-body">
+            <div class="form-group">
+              <label>Credit Remaining Weight</label>
+              <input type="range" id="wCredits" min="0" max="100" value="40" oninput="updateWeightLabel('wCredits','wCreditsVal')">
+              <span id="wCreditsVal" style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted)">40%</span>
+            </div>
+            <div class="form-group">
+              <label>Capability Score Weight</label>
+              <input type="range" id="wCapability" min="0" max="100" value="35" oninput="updateWeightLabel('wCapability','wCapabilityVal')">
+              <span id="wCapabilityVal" style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted)">35%</span>
+            </div>
+            <div class="form-group">
+              <label>Speed / RPM Weight</label>
+              <input type="range" id="wSpeed" min="0" max="100" value="25" oninput="updateWeightLabel('wSpeed','wSpeedVal')">
+              <span id="wSpeedVal" style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted)">25%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEYS SECTION -->
+    <div id="section-keys" class="section">
+      <div class="page-header">
+        <h1 class="page-title">API Keys</h1>
+        <p class="page-sub">Store keys in-memory for this session. Keys are never persisted to disk.</p>
+      </div>
+      <div class="settings-section" style="max-width:640px">
+        <div class="settings-header">
+          <div class="settings-title">Provider Keys</div>
+          <div class="settings-desc">Paste your API key per provider. The router will use them automatically.</div>
+        </div>
+        <div class="settings-body" id="keysBody"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<script>
+// ===== DATA =====
+const PROVIDERS = [
+  {
+    id:'openrouter', name:'OpenRouter', tier:'free', url:'https://openrouter.ai/api/v1',
+    bestFor:['general','coding','reasoning','vision','long'],
+    rpm:20, daily:50, dailyExtended:1000,
+    models:['deepseek/deepseek-r1:free','meta-llama/llama-3.3-70b-instruct:free','qwen/qwen3-235b-a22b:free','google/gemma-3-27b-it:free'],
+    featuredModel:'meta-llama/llama-3.3-70b-instruct:free',
+    notes:'50 req/day free, 1000/day with $10 lifetime topup',
+    capabilityScores:{general:92,coding:88,reasoning:95,vision:80,long:85,fast:60},
+    creditPct:null, // unlimited free tier
+    dataTraining:false,
+    keyVar:'OPENROUTER_API_KEY',
+  },
+  {
+    id:'google_aistudio', name:'Google AI Studio', tier:'free', url:'https://generativelanguage.googleapis.com/v1beta',
+    bestFor:['long','general','vision'],
+    rpm:15, daily:1500,
+    models:['gemini-2.0-flash','gemini-2.0-flash-lite','gemini-1.5-flash'],
+    featuredModel:'gemini-2.0-flash',
+    notes:'Up to 1500 req/day on Flash-Lite. Data used for training outside EEA.',
+    capabilityScores:{general:90,coding:82,reasoning:88,vision:91,long:95,fast:85},
+    creditPct:null,
+    dataTraining:true,
+    keyVar:'GOOGLE_AI_STUDIO_KEY',
+  },
+  {
+    id:'groq', name:'Groq', tier:'free', url:'https://api.groq.com/openai/v1',
+    bestFor:['fast','general','coding'],
+    rpm:30, daily:14400,
+    models:['llama-3.3-70b-versatile','llama-3.1-8b-instant','gemma2-9b-it','qwen-qwq-32b'],
+    featuredModel:'llama-3.3-70b-versatile',
+    notes:'Very high daily req. Context limited on free. Fastest inference.',
+    capabilityScores:{general:87,coding:84,reasoning:82,vision:0,long:65,fast:99},
+    creditPct:null,
+    dataTraining:false,
+    keyVar:'GROQ_API_KEY',
+  },
+  {
+    id:'cerebras', name:'Cerebras', tier:'free', url:'https://api.cerebras.ai/v1',
+    bestFor:['fast','general'],
+    rpm:30, daily:14400,
+    models:['llama-3.3-70b','llama3.1-8b','qwen-3-32b'],
+    featuredModel:'llama-3.3-70b',
+    notes:'8K context on free tier. Very fast wafer-scale hardware.',
+    capabilityScores:{general:86,coding:80,reasoning:80,vision:0,long:40,fast:98},
+    creditPct:null,
+    dataTraining:false,
+    keyVar:'CEREBRAS_API_KEY',
+  },
+  {
+    id:'mistral', name:'Mistral La Plateforme', tier:'free', url:'https://api.mistral.ai/v1',
+    bestFor:['coding','general'],
+    rpm:60, daily:null,
+    models:['mistral-small-latest','open-mistral-nemo','open-codestral-mamba'],
+    featuredModel:'mistral-small-latest',
+    notes:'Requires data training opt-in + phone verification.',
+    capabilityScores:{general:85,coding:90,reasoning:82,vision:0,long:78,fast:75},
+    creditPct:null,
+    dataTraining:true,
+    keyVar:'MISTRAL_API_KEY',
+  },
+  {
+    id:'cohere', name:'Cohere', tier:'free', url:'https://api.cohere.com/v1',
+    bestFor:['general','long'],
+    rpm:20, daily:1000,
+    models:['command-a','command-r-plus','command-r'],
+    featuredModel:'command-a',
+    notes:'1000 req/month shared quota.',
+    capabilityScores:{general:83,coding:72,reasoning:78,vision:0,long:88,fast:70},
+    creditPct:null,
+    dataTraining:false,
+    keyVar:'COHERE_API_KEY',
+  },
+  {
+    id:'cloudflare', name:'Cloudflare Workers AI', tier:'free', url:'https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run',
+    bestFor:['fast','general'],
+    rpm:null, daily:null,
+    models:['@cf/meta/llama-3.3-70b-instruct-fp8-fast','@cf/qwen/qwq-32b','@cf/mistral/mistral-small-3.1-24b-instruct'],
+    featuredModel:'@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+    notes:'10,000 neurons/day. Edge deployment, global low latency.',
+    capabilityScores:{general:80,coding:78,reasoning:76,vision:72,long:60,fast:92},
+    creditPct:null,
+    dataTraining:false,
+    keyVar:'CF_API_TOKEN',
+  },
+  {
+    id:'together', name:'Together AI (Trial)', tier:'trial', url:'https://api.together.xyz/v1',
+    bestFor:['general','coding','reasoning'],
+    rpm:60, daily:null,
+    models:['meta-llama/Llama-3.3-70B-Instruct-Turbo','deepseek-ai/DeepSeek-R1','mistralai/Mistral-7B-Instruct-v0.2'],
+    featuredModel:'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+    notes:'$1 credit when payment method added.',
+    capabilityScores:{general:89,coding:87,reasoning:90,vision:75,long:82,fast:78},
+    creditPct:72,
+    dataTraining:false,
+    keyVar:'TOGETHER_API_KEY',
+  },
+  {
+    id:'github_models', name:'GitHub Models', tier:'free', url:'https://models.inference.ai.azure.com',
+    bestFor:['general','coding','reasoning'],
+    rpm:null, daily:null,
+    models:['gpt-4o','meta/Llama-3.3-70B-Instruct','deepseek/DeepSeek-R1','openai/o3-mini'],
+    featuredModel:'gpt-4o',
+    notes:'Limits depend on Copilot tier. Very restrictive token limits.',
+    capabilityScores:{general:93,coding:93,reasoning:94,vision:88,long:78,fast:72},
+    creditPct:null,
+    dataTraining:false,
+    keyVar:'GITHUB_TOKEN',
+  },
+  {
+    id:'huggingface', name:'HuggingFace Inference', tier:'free', url:'https://api-inference.huggingface.co/models',
+    bestFor:['general'],
+    rpm:null, daily:null,
+    models:['meta-llama/Llama-3.1-70B-Instruct','mistralai/Mistral-7B-Instruct-v0.3'],
+    featuredModel:'meta-llama/Llama-3.1-70B-Instruct',
+    notes:'$0.10/month in free credits. <10GB models only (some exceptions).',
+    capabilityScores:{general:78,coding:74,reasoning:72,vision:60,long:68,fast:55},
+    creditPct:85,
+    dataTraining:false,
+    keyVar:'HUGGINGFACE_API_KEY',
+  },
+  {
+    id:'hyperbolic', name:'Hyperbolic', tier:'trial', url:'https://api.hyperbolic.xyz/v1',
+    bestFor:['coding','reasoning','general'],
+    rpm:null, daily:null,
+    models:['deepseek-ai/DeepSeek-V3-0324','meta-llama/Llama-3.1-405B-Instruct','Qwen/QwQ-32B'],
+    featuredModel:'deepseek-ai/DeepSeek-V3-0324',
+    notes:'$1 trial credit.',
+    capabilityScores:{general:88,coding:90,reasoning:91,vision:70,long:80,fast:70},
+    creditPct:45,
+    dataTraining:false,
+    keyVar:'HYPERBOLIC_API_KEY',
+  },
+  {
+    id:'sambanova', name:'SambaNova Cloud', tier:'trial', url:'https://api.sambanova.ai/v1',
+    bestFor:['reasoning','general'],
+    rpm:null, daily:null,
+    models:['Meta-Llama-3.3-70B-Instruct','Llama-4-Maverick-17B-128E-Instruct','DeepSeek-R1-0528'],
+    featuredModel:'Meta-Llama-3.3-70B-Instruct',
+    notes:'$5 credit for 3 months.',
+    capabilityScores:{general:86,coding:82,reasoning:89,vision:0,long:80,fast:82},
+    creditPct:60,
+    dataTraining:false,
+    keyVar:'SAMBANOVA_API_KEY',
+  },
+];
+
+// Simulate per-session usage
+const sessionUsage = {};
+PROVIDERS.forEach(p => {
+  sessionUsage[p.id] = { used: Math.floor(Math.random() * (p.daily ? p.daily * 0.4 : 200)) };
+});
+
+// In-memory API keys
+const apiKeys = {};
+
+// ===== SCORING =====
+function scoreProvider(provider, taskType, strategy) {
+  const caps = provider.capabilityScores;
+  const capScore = (caps[taskType] || 50) / 100;
+
+  let creditScore = 1.0;
+  if (provider.creditPct !== null) {
+    creditScore = provider.creditPct / 100;
+  } else if (provider.daily) {
+    const used = sessionUsage[provider.id].used;
+    creditScore = Math.max(0, 1 - used / provider.daily);
+  }
+
+  const rpmScore = provider.rpm ? Math.min(1, provider.rpm / 60) : 0.5;
+
+  // Get weights from sliders
+  const wC = (document.getElementById('wCredits') ? parseInt(document.getElementById('wCredits').value) : 40) / 100;
+  const wCap = (document.getElementById('wCapability') ? parseInt(document.getElementById('wCapability').value) : 35) / 100;
+  const wS = (document.getElementById('wSpeed') ? parseInt(document.getElementById('wSpeed').value) : 25) / 100;
+
+  if (strategy === 'credits') return creditScore;
+  if (strategy === 'capability') return capScore;
+  if (strategy === 'speed') return rpmScore;
+
+  // capability must be > 0 for vision etc
+  if (capScore === 0) return 0;
+
+  return (creditScore * wC) + (capScore * wCap) + (rpmScore * wS);
+}
+
+function getBestProviders(taskType, strategy) {
+  return PROVIDERS
+    .map(p => ({ ...p, score: scoreProvider(p, taskType, strategy) }))
+    .filter(p => p.score > 0)
+    .sort((a,b) => b.score - a.score);
+}
+
+// ===== UI =====
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'providers') renderProviderTable();
+  if (id === 'capacity') renderCapacity();
+  if (id === 'settings') renderPriority();
+  if (id === 'keys') renderKeys();
+}
+
+function onTaskChange() { updateKPIs(); }
+function clearForm() {
+  document.getElementById('promptBox').value = '';
+  document.getElementById('responseBox').textContent = 'Response will appear here after routing…';
+  document.getElementById('responseBox').style.color = 'var(--color-text-faint)';
+  document.getElementById('routeWinner').innerHTML = 'Submit a request to see routing decision';
+  document.getElementById('fallbackChain').innerHTML = 'Routing chain will appear here';
+  document.getElementById('curlBox').textContent = 'Submit a request to see generated cURL';
+  document.getElementById('metaChips').innerHTML = '';
+  document.getElementById('routeStatus').style.display = 'none';
+  document.getElementById('copyRespBtn').style.display = 'none';
+}
+
+function updateKPIs() {
+  const taskType = document.getElementById('taskType') ? document.getElementById('taskType').value : 'general';
+  const active = PROVIDERS.filter(p => (p.capabilityScores[taskType] || 0) > 0).length;
+  const totalDaily = PROVIDERS.reduce((s,p) => s + (p.daily || 1000), 0);
+  const totalUsed = Object.values(sessionUsage).reduce((s,u) => s + u.used, 0);
+  const best = getBestProviders(taskType, 'balanced')[0];
+
+  animNum('kpiActive', active);
+  animNum('kpiReqs', totalDaily);
+  animNum('kpiUsed', totalUsed);
+  const el = document.getElementById('kpiBest');
+  if (el && best) el.textContent = best.name;
+}
+
+function animNum(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let start = parseInt(el.textContent.replace(/[^0-9]/g,'')) || 0;
+  const step = Math.ceil(Math.abs(target - start) / 20);
+  const dir = target > start ? 1 : -1;
+  const iv = setInterval(() => {
+    start += dir * step;
+    if ((dir > 0 && start >= target) || (dir < 0 && start <= target)) { start = target; clearInterval(iv); }
+    el.textContent = start.toLocaleString();
+  }, 30);
+}
+
+function routeRequest() {
+  const taskType = document.getElementById('taskType').value;
+  const strategy = document.getElementById('strategy').value;
+  const prompt = document.getElementById('promptBox').value.trim() || '(empty prompt)';
+
+  const ranked = getBestProviders(taskType, strategy);
+  if (!ranked.length) return;
+
+  const winner = ranked[0];
+
+  // Increment usage
+  sessionUsage[winner.id].used += 1;
+  updateKPIs();
+
+  // Route Winner
+  const statusEl = document.getElementById('routeStatus');
+  statusEl.style.display = 'inline-flex';
+  statusEl.textContent = 'Routed';
+
+  document.getElementById('routeWinner').innerHTML = `
+    <div class="route-winner">
+      <div class="route-winner-label">Selected Provider</div>
+      <div class="winner-row">
+        <div>
+          <div class="winner-provider">${winner.name}</div>
+          <div class="winner-model">${winner.featuredModel}</div>
+        </div>
+        <div style="margin-left:auto;background:var(--color-primary-highlight);color:var(--color-primary);padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);font-family:var(--font-mono);font-size:var(--text-xs)">
+          Score: ${(winner.score * 100).toFixed(1)}
+        </div>
+      </div>
+    </div>
+    <div class="score-bar-row">
+      ${makeScoreBar('Capability', winner.capabilityScores[taskType] / 100, 'var(--color-primary)')}
+      ${makeScoreBar('Credits', winner.creditPct !== null ? winner.creditPct/100 : (winner.daily ? Math.max(0,1-sessionUsage[winner.id].used/winner.daily) : 0.9), 'var(--color-success)')}
+      ${makeScoreBar('Speed', winner.rpm ? Math.min(1,winner.rpm/60) : 0.5, 'var(--color-gold)')}
+      ${makeScoreBar('Overall', winner.score, 'var(--color-blue)')}
+    </div>
+  `;
+
+  // Fallback chain
+  const chain = ranked.slice(0,4);
+  document.getElementById('fallbackChain').innerHTML = chain.map((p,i) => `
+    <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) var(--space-3);background:${i===0?'var(--color-primary-highlight)':'var(--color-surface-2)'};border-radius:var(--radius-md);border:1px solid var(--color-border)">
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-faint);width:16px">${i+1}</span>
+      <span style="font-size:var(--text-xs);font-weight:${i===0?'600':'400'};color:${i===0?'var(--color-primary)':'var(--color-text)'};flex:1">${p.name}</span>
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted)">${(p.score*100).toFixed(0)}</span>
+    </div>
+  `).join('');
+
+  // cURL
+  const apiKey = apiKeys[winner.id] || `$${winner.keyVar}`;
+  const body = JSON.stringify({ model: winner.featuredModel, messages: [{role:'user', content: prompt.length > 60 ? prompt.slice(0,60)+'...' : prompt}], max_tokens: 1024 }, null, 2);
+  document.getElementById('curlBox').textContent = `curl -X POST ${winner.url}/chat/completions \
+  -H "Authorization: Bearer ${apiKey}" \
+  -H "Content-Type: application/json" \
+  -d '${body}'`;
+
+  // Simulate response
+  const respEl = document.getElementById('responseBox');
+  respEl.innerHTML = '<div class="skeleton skeleton-line" style="width:90%"></div><div class="skeleton skeleton-line" style="width:70%"></div><div class="skeleton skeleton-line" style="width:80%"></div>';
+  respEl.style.color = 'var(--color-text)';
+
+  const responses = {
+    general: `[Simulated via ${winner.name} → ${winner.featuredModel}]
+
+This is a simulated response from the FreeRouter demo. In production, your prompt would be forwarded to ${winner.name}'s API using the selected model.
+
+The router scored this provider highest based on your routing strategy (${strategy}) and task type (${taskType}).`,
+    coding: `[Simulated via ${winner.name} → ${winner.featuredModel}]
+
+\`\`\`python
+# Simulated code response
+def example_function(x: int) -> str:
+    """Router selected ${winner.name} for coding tasks."""
+    return f"Score: {winner.score.toFixed(3)}"
+\`\`\`
+
+Model selected based on ${(winner.capabilityScores[taskType])}% coding capability score.`,
+    reasoning: `[Simulated via ${winner.name} → ${winner.featuredModel}]
+
+<think>
+The router evaluated ${ranked.length} providers for reasoning tasks.
+Winner: ${winner.name} (score: ${(winner.score*100).toFixed(1)})
+Next best: ${ranked[1]?.name || 'none'} (score: ${(ranked[1]?.score*100||0).toFixed(1)})
+</think>
+
+This provider was selected for its ${winner.capabilityScores[taskType]}% reasoning capability rating.`,
+    vision: `[Simulated via ${winner.name} → ${winner.featuredModel}]
+
+Vision task routed to ${winner.name}. Only providers with multimodal support (vision score > 0) were considered.
+
+Providers with vision capability: ${PROVIDERS.filter(p=>p.capabilityScores.vision>0).map(p=>p.name).join(', ')}.`,
+    long: `[Simulated via ${winner.name} → ${winner.featuredModel}]
+
+Long-context task routed to ${winner.name}.
+Selected for its ${winner.capabilityScores.long}% long-context capability score.
+
+Note: Gemini 2.0 Flash supports 1M token context on Google AI Studio's free tier.`,
+    fast: `[Simulated via ${winner.name} → ${winner.featuredModel}]
+
+Fast/realtime task. ${winner.name} was selected for its ${winner.rpm || '?'} RPM rate limit.
+
+Top speed-optimised options: Groq (99 speed score), Cerebras (98 speed score), Cloudflare Workers AI (92 speed score).`,
+  };
+
+  const taskVal = document.getElementById('taskType').value;
+  const respText = responses[taskVal] || responses.general;
+
+  setTimeout(() => {
+    respEl.textContent = respText;
+    document.getElementById('copyRespBtn').style.display = 'inline-flex';
+    document.getElementById('metaChips').innerHTML = `
+      <span class="meta-chip">provider: <strong>${winner.name}</strong></span>
+      <span class="meta-chip">model: <strong>${winner.featuredModel}</strong></span>
+      <span class="meta-chip">score: <strong>${(winner.score*100).toFixed(1)}</strong></span>
+      <span class="meta-chip">strategy: <strong>${strategy}</strong></span>
+      <span class="meta-chip">requests_today: <strong>${sessionUsage[winner.id].used}</strong></span>
+    `;
+  }, 900);
+}
+
+function makeScoreBar(label, val, color) {
+  const pct = Math.max(0, Math.min(1, val || 0));
+  return `
+    <div class="score-row">
+      <span class="score-label">${label}</span>
+      <div class="score-track"><div class="score-fill" style="width:${pct*100}%;background:${color}"></div></div>
+      <span class="score-val">${(pct*100).toFixed(0)}%</span>
+    </div>`;
+}
+
+// ===== PROVIDER TABLE =====
+function renderProviderTable() {
+  const filter = document.getElementById('filterTier') ? document.getElementById('filterTier').value : 'all';
+  const list = filter === 'all' ? PROVIDERS : PROVIDERS.filter(p=>p.tier===filter);
+  const tbody = document.getElementById('providerTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = list.map(p => {
+    const used = sessionUsage[p.id].used;
+    const pct = p.creditPct !== null ? p.creditPct : (p.daily ? Math.round((1-used/p.daily)*100) : null);
+    const creditBar = pct !== null ? `
+      <div class="credit-bar-wrap">
+        <div class="credit-bar"><div class="credit-fill" style="width:${pct}%;background:${pct>50?'var(--color-success)':pct>20?'var(--color-gold)':'var(--color-error)'}"></div></div>
+        <span class="credit-label">${pct}%</span>
+      </div>` : `<span style="color:var(--color-text-muted);font-size:var(--text-xs)">Unlimited</span>`;
+    const status = (pct === null || pct > 20) ? 'online' : pct > 5 ? 'limited' : 'offline';
+    return `<tr>
+      <td><div class="provider-name">${p.name}</div><div class="provider-tier" style="font-family:var(--font-mono)">${p.featuredModel}</div></td>
+      <td><span class="tag ${p.tier==='free'?'tag-free':'tag-trial'}">${p.tier==='free'?'Free':'Trial'}</span>${p.dataTraining?'<span class="tag tag-warn" style="margin-left:4px">trains</span>':''}</td>
+      <td><span style="font-size:var(--text-xs);color:var(--color-text-muted)">${p.bestFor.slice(0,2).join(', ')}</span></td>
+      <td><span style="font-family:var(--font-mono);font-size:var(--text-xs)">${p.rpm || '—'}</span></td>
+      <td><span style="font-family:var(--font-mono);font-size:var(--text-xs)">${p.daily ? p.daily.toLocaleString() : '—'}</span></td>
+      <td>${creditBar}</td>
+      <td><div class="status-dot status-${status}"></div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== CAPACITY =====
+function renderCapacity() {
+  const grid = document.getElementById('capacityGrid');
+  if (!grid) return;
+  grid.innerHTML = PROVIDERS.map(p => {
+    const rows = [
+      p.rpm ? `<div class="cap-limit-row"><span class="cap-key">RPM</span><span class="cap-val">${p.rpm}</span></div>` : '',
+      p.daily ? `<div class="cap-limit-row"><span class="cap-key">Daily reqs</span><span class="cap-val">${p.daily.toLocaleString()}</span></div>` : '',
+      `<div class="cap-limit-row"><span class="cap-key">Used today</span><span class="cap-val">${sessionUsage[p.id].used}</span></div>`,
+      p.dailyExtended ? `<div class="cap-limit-row"><span class="cap-key">Extended daily</span><span class="cap-val">${p.dailyExtended.toLocaleString()}</span></div>` : '',
+    ].filter(Boolean).join('');
+    return `
+      <div class="cap-card">
+        <div class="cap-header">
+          <span class="cap-name">${p.name}</span>
+          <span class="tag ${p.tier==='free'?'tag-free':'tag-trial'}">${p.tier==='free'?'Free':'Trial'}</span>
+        </div>
+        <div class="cap-limits">${rows}</div>
+      </div>`;
+  }).join('');
+}
+
+// ===== PRIORITY =====
+function renderPriority() {
+  const list = document.getElementById('priorityList');
+  if (!list) return;
+  list.innerHTML = PROVIDERS.slice(0,7).map((p,i) => `
+    <div class="priority-item">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+      <span class="priority-rank">${i+1}</span>
+      <span class="priority-name">${p.name}</span>
+      <span class="priority-weight">${p.tier==='free'?'Free':'Trial'}</span>
+    </div>`).join('');
+}
+
+// ===== KEYS =====
+function renderKeys() {
+  const body = document.getElementById('keysBody');
+  if (!body) return;
+  body.innerHTML = PROVIDERS.map(p => `
+    <div class="form-group">
+      <label>${p.name}</label>
+      <div class="key-input-row">
+        <input type="password" id="key_${p.id}" placeholder="${p.keyVar}" value="${apiKeys[p.id]||''}" oninput="apiKeys['${p.id}']=this.value">
+        <button class="btn btn-ghost btn-sm" onclick="toggleKeyVis('${p.id}')">Show</button>
+      </div>
+    </div>`).join('');
+}
+
+function toggleKeyVis(id) {
+  const el = document.getElementById('key_'+id);
+  if (el) el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+// ===== UTILS =====
+function updateWeightLabel(sliderId, labelId) {
+  const el = document.getElementById(labelId);
+  if (el) el.textContent = document.getElementById(sliderId).value + '%';
+}
+
+function copyCurl() {
+  const text = document.getElementById('curlBox').textContent;
+  navigator.clipboard.writeText(text).catch(()=>{});
+}
+function copyResp() {
+  const text = document.getElementById('responseBox').textContent;
+  navigator.clipboard.writeText(text).catch(()=>{});
+}
+
+// ===== THEME TOGGLE =====
+(function(){
+  const t = document.getElementById('themeToggle');
+  const r = document.documentElement;
+  let d = r.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  r.setAttribute('data-theme', d);
+  function setIcon(mode) {
+    if (!t) return;
+    t.innerHTML = mode === 'dark'
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  }
+  setIcon(d);
+  t && t.addEventListener('click', () => {
+    d = d === 'dark' ? 'light' : 'dark';
+    r.setAttribute('data-theme', d);
+    setIcon(d);
+  });
+})();
+
+// ===== INIT =====
+updateKPIs();
+</script>
+</body>
+</html>

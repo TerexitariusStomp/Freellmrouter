@@ -1,0 +1,395 @@
+Yes — the cleanest way is to have a coding agent build a **Hermes-compatible model router** that outputs a provider/model choice Hermes Agent can consume via `provider`, `model`, and optionally `base_url`, since Hermes supports built-in providers like `openrouter`, `nous`, and `main`, and `main` can point to any OpenAI-compatible endpoint. [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/user-guide/configuration/)
+
+## Prompt
+
+Build a production-ready **Hermes Agent model router** for Nous Research’s Hermes Agent that decides which LLM provider/model to use from a pool of **free or trial-credit LLM API providers** and returns a Hermes-compatible selection object. [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart/)
+
+The router must be designed for Hermes Agent’s config model, where Hermes can use:
+- `provider`
+- `model`
+- `base_url` when using a custom OpenAI-compatible endpoint
+- environment/API keys from `.env` or process env [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/integrations/providers)
+
+### Objective
+
+Create a tool/service/library that Hermes Agent can call before a task begins to decide which provider and model to use based on:
+1. **Remaining credits / quota**
+2. **Capability fit for the task**
+3. **Availability / health**
+4. **Latency / RPM**
+5. **Policy constraints**, such as excluding providers that may use prompts for training [mintlify](https://mintlify.com/explore/cheahjs/free-llm-api-resources)
+
+The router should support these kinds of providers from the free-LLM-resources ecosystem:
+- OpenRouter
+- Google AI Studio
+- Groq
+- Cerebras
+- Mistral
+- Cohere
+- Cloudflare Workers AI
+- Together AI
+- GitHub Models
+- Hugging Face Inference
+- Hyperbolic
+- SambaNova
+- plus easy extension for more providers from the list [mintlify](https://mintlify.com/explore/cheahjs/free-llm-api-resources)
+
+### Important Hermes compatibility requirements
+
+Hermes Agent supports provider-based configuration and custom endpoints. [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/user-guide/configuration/)
+
+Your output must be compatible with Hermes in one of these forms:
+
+#### Mode A: native Hermes provider selection
+Use when the chosen provider is one Hermes already understands directly, such as:
+- `openrouter`
+- `nous`
+- `anthropic`
+- `codex`
+- `main`
+- or another provider registered in Hermes’ provider registry [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/integrations/providers)
+
+Example output:
+```json
+{
+  "provider": "openrouter",
+  "model": "meta-llama/llama-3.3-70b-instruct:free",
+  "reason": "Best free model with remaining quota and high reasoning score",
+  "score": 0.91
+}
+```
+
+#### Mode B: Hermes custom endpoint via `main`
+Use when the provider is not a first-class Hermes provider but has an OpenAI-compatible API. [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/user-guide/configuration/)
+
+Example output:
+```json
+{
+  "provider": "main",
+  "model": "llama-3.3-70b-versatile",
+  "base_url": "https://api.groq.com/openai/v1",
+  "api_key_env": "GROQ_API_KEY",
+  "reason": "Groq selected for speed and available free quota",
+  "score": 0.89
+}
+```
+
+If Hermes can only consume config indirectly, also generate a helper that writes or returns a `model_config` block Hermes can inject into runtime settings. [newreleases](https://newreleases.io/project/github/NousResearch/hermes-agent/release/v2026.3.28)
+
+## What to build
+
+Create the following:
+
+### Core router engine
+Implement a routing engine that:
+- accepts a task description and task metadata
+- classifies the task into capabilities such as `general`, `coding`, `reasoning`, `vision`, `long_context`, `fast`
+- scores providers by weighted criteria
+- returns the best provider/model choice plus fallback chain
+- can degrade gracefully when quotas are exhausted or a provider is unhealthy
+
+### Provider registry
+Implement a registry file, preferably JSON or YAML, for providers with fields like:
+- `id`
+- `display_name`
+- `hermes_provider_mode` (`native` or `main`)
+- `provider`
+- `base_url`
+- `api_key_env`
+- `models`
+- `capabilities`
+- `rate_limits`
+- `free_tier_type`
+- `quota_detection_method`
+- `healthcheck_method`
+- `training_policy`
+- `supports_vision`
+- `supports_long_context`
+- `supports_tool_calling`
+- `supports_json_mode`
+- `priority`
+- `enabled`
+
+### Scoring system
+Implement weighted scoring with at least:
+- credit/quota remaining
+- task capability fit
+- latency or RPM
+- health status
+- policy compatibility
+- manual preference boost
+
+Use a formula like:
+```text
+score =
+  credit_weight * normalized_credit_remaining +
+  capability_weight * task_fit_score +
+  speed_weight * normalized_speed +
+  health_weight * health_score +
+  policy_weight * policy_score +
+  preference_weight * manual_priority
+```
+
+Make the weights configurable.
+
+### Fallback chain
+Return the top N ranked candidates so Hermes can retry if the first choice fails.
+
+Example:
+```json
+{
+  "selected": {
+    "provider": "main",
+    "model": "gemini-2.0-flash",
+    "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+    "api_key_env": "GOOGLE_AI_STUDIO_KEY"
+  },
+  "fallbacks": [
+    {
+      "provider": "openrouter",
+      "model": "google/gemma-3-27b-it:free"
+    },
+    {
+      "provider": "main",
+      "model": "llama-3.3-70b-versatile",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY"
+    }
+  ]
+}
+```
+
+## Required integration modes
+
+Build at least these three integration options:
+
+### Option 1: Python library
+A Python package Hermes can call from a wrapper script.
+
+Example:
+```python
+choice = router.select_model(
+    prompt=user_prompt,
+    task_type="coding",
+    require_tool_calling=True,
+    require_vision=False
+)
+```
+
+### Option 2: CLI tool
+A CLI Hermes can shell out to.
+
+Example:
+```bash
+hermes-free-router pick --task coding --json
+```
+
+Output must be pure JSON.
+
+### Option 3: OpenAI-compatible router proxy
+A small HTTP server that exposes:
+- `POST /v1/chat/completions`
+- `GET /health`
+- `GET /providers`
+- `POST /route`
+
+This proxy should choose the target upstream provider and forward the request. Hermes can then point `provider: "main"` at this proxy using `base_url`. [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/user-guide/configuration/)
+
+## Preferred stack
+
+Use:
+- Python 3.11+
+- FastAPI for HTTP mode
+- Pydantic for schemas
+- httpx for upstream calls
+- Typer or argparse for CLI
+- tenacity for retries
+- PyYAML for registry/config
+- Redis optional for shared quota state
+- SQLite fallback for local persistence
+
+## Quota / credits handling
+
+Design quota tracking for messy real-world free providers.
+
+Support:
+- explicit remaining credits if provider exposes them
+- inferred daily quota via local counters
+- rolling RPM throttles
+- manual override values
+- “unknown quota” mode with conservative scoring
+
+The router should maintain state for:
+- requests used today
+- tokens used today
+- last 429 time
+- last healthcheck result
+- consecutive failures
+- estimated credit remaining
+
+If exact quota cannot be fetched, infer it from configured limits and local usage.
+
+## Health and reliability
+
+Implement:
+- periodic health checks
+- circuit breaker behavior
+- cooldown after 429
+- cooldown after repeated 5xx errors
+- automatic failover to next fallback
+- structured logs for route decisions
+
+A provider that recently failed should be penalized heavily.
+
+## Task classification
+
+Implement a lightweight task classifier that inspects:
+- prompt text
+- attachments / multimodal flags
+- requested max tokens
+- JSON/tool-calling requirements
+- latency sensitivity
+
+Map to categories like:
+- `general`
+- `coding`
+- `reasoning`
+- `vision`
+- `long_context`
+- `fast`
+
+Use rule-based classification first; optionally allow plugging in a small classifier model later.
+
+## Policy filters
+
+Support hard filters such as:
+- require tool calling
+- require JSON mode
+- require vision
+- minimum context window
+- exclude training-on-input providers
+- only open-weight models
+- only zero-cost providers
+- only providers with local or self-hosted fallback
+
+A provider failing a hard filter must not be selected.
+
+## Hermes-specific deliverables
+
+Produce:
+
+### 1. A runtime adapter for Hermes
+This adapter should output a Hermes-ready config block like:
+```yaml
+model:
+  provider: "main"
+  model: "llama-3.3-70b-versatile"
+  base_url: "https://api.groq.com/openai/v1"
+```
+or:
+```yaml
+model:
+  provider: "openrouter"
+  model: "meta-llama/llama-3.3-70b-instruct:free"
+```
+This matches Hermes’ documented provider/model/base_url config flow. [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/integrations/providers)
+
+### 2. Example `.env`
+Include env var names such as:
+- `OPENROUTER_API_KEY`
+- `GROQ_API_KEY`
+- `GOOGLE_AI_STUDIO_KEY`
+- `CEREBRAS_API_KEY`
+- `MISTRAL_API_KEY`
+- `COHERE_API_KEY`
+- `CF_API_TOKEN`
+- `TOGETHER_API_KEY`
+- `GITHUB_TOKEN`
+- `HUGGINGFACE_API_KEY`
+- `HYPERBOLIC_API_KEY`
+- `SAMBANOVA_API_KEY`
+
+### 3. Hermes usage examples
+Include examples for:
+- setting Hermes to `provider: main` with the proxy base URL
+- using the CLI to choose a model before launching Hermes
+- updating `config.yaml` dynamically
+- using auxiliary routing for vision separately if needed, since Hermes supports separate auxiliary model config. [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/user-guide/configuration/)
+
+## File structure
+
+Prefer this layout:
+```text
+hermes_free_router/
+  app/
+    __init__.py
+    main.py
+    cli.py
+    router.py
+    scorer.py
+    registry.py
+    quota.py
+    health.py
+    proxy.py
+    hermes_adapter.py
+    schemas.py
+    classifiers.py
+    policies.py
+    storage.py
+  configs/
+    providers.yaml
+    router.yaml
+  tests/
+  README.md
+  .env.example
+  docker-compose.yml
+  Dockerfile
+```
+
+## Non-goals
+
+Do not build a UI first.
+Do not hardcode a single provider.
+Do not assume OpenRouter alone solves routing.
+Do not rely only on static capability ranking; account for quota depletion.
+Do not write mock-only pseudocode. Build runnable code.
+
+## Acceptance criteria
+
+The project is complete only if it can:
+1. rank multiple free/trial providers
+2. select a provider/model for a given task
+3. return Hermes-compatible config output
+4. expose an OpenAI-compatible proxy mode
+5. maintain quota and health state
+6. provide fallback routing
+7. be configured entirely from YAML + env vars
+8. be easy to add new providers to without code changes
+
+## Nice-to-have
+
+- Prometheus metrics
+- tracing of routing decisions
+- dry-run mode explaining why each provider ranked where it did
+- cache of recent route decisions
+- per-task custom weights
+- separate profiles like `cheap`, `fast`, `best`, `privacy`
+
+## Final instruction to coding agent
+
+Write the code, config files, README, `.env.example`, and tests. Make the first version runnable locally with:
+```bash
+docker compose up
+```
+and also directly with:
+```bash
+python -m app.main
+```
+
+Document exactly how Hermes Agent should point at it, especially using Hermes’ `provider`, `model`, and `base_url` settings for `main` or native providers. [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/integrations/providers)
+
+## Why this shape fits Hermes
+
+Hermes Agent already supports choosing providers and models in config, and it can also use a custom OpenAI-compatible endpoint through `base_url`, which makes a local router proxy the most natural integration path. [hermes-agent.nousresearch](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart/)
+
+If you want, I can turn this into a **tighter implementation-spec prompt** optimized for Claude Code / OpenHands / Cursor, with less prose and more exact deliverables.

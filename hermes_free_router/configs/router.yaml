@@ -1,0 +1,18 @@
+# Configuration for Hermes Free Router
+# Default scoring weights (sum should be 1.0)
+scoring:
+  credit_weight: 0.4
+  capability_weight: 0.35
+  speed_weight: 0.25
+  health_weight: 0.05
+  policy_weight: 0.05
+  preference_weight: 0.05
+
+# Health check settings
+health:
+  check_interval: 30 # seconds
+
+# Circuit breaker settings
+circuit_breaker:
+  failure_threshold: 5
+  recovery_timeout: 60
